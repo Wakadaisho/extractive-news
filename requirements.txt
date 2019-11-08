@@ -1,0 +1,4 @@
+flask==1.0.3
+newspaper3k==0.2.8
+sumy==0.8.1
+nltk==3.4.1

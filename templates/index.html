@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="A simple web app that summarizes news articles of the same subject matter from multiple sources.">
+  <meta name="author" content="Paul Wahome">
+
+  <title>Extractive News Summarization</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css'  )}}" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="{{ url_for('static', filename='css/scrolling-nav.css'  )}}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/font-awesome.min.css' )}}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/myStyle.css' )}}" rel="stylesheet">
+
+  <!-- Bootstrap core JavaScript -->
+  <script type='text/javascript' src="{{ url_for('static', filename='vendor/jquery/jquery.min.js' )}}"></script>
+  <script type='text/javascript' src="{{ url_for('static', filename='vendor/jquery/jquery.form.min.js' )}}"></script>
+  <script type='text/javascript' src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js' )}}"></script>
+
+  <!-- Custom JavaScript for this theme -->
+  <script type='text/javascript' src="{{ url_for('static', filename='js/scrolling-nav.js' )}}"></script>
+  <!-- Get custom JavaScript file for layout behaviour and text formatting -->
+  <script type='text/javascript' src="{{ url_for('static', filename='js/helper.js' )}}"></script>
+  <script type='text/javascript' src="{{ url_for('static', filename='js/autoresize.jquery.js' )}}"></script>
+</head>
+
+<body id="page-top" background="bg-light">
+  <header id="header">    
+    <ul class="nav justify-content-center nav-fill text-decoration-none display-4">
+          <img width="60px" src="{{ url_for('static', filename='images/favicon.png' )}}">
+          <li class="nav-item">
+          </li>            
+          <li class="nav-item">
+            <a id="search_tab" class="w3-bar-item w3-button nav-link active active-shade" onclick="openTab('Search', this.id)" href="#">Search</a>
+          </li>            
+          <li class="nav-item">
+            <a id="link_tab" class="w3-bar-item w3-button nav-link" onclick="openTab('Links', this.id)" href='#'>Links</a>      
+          </li>
+          <li class="nav-item">
+            <a id="clipboard_tab" class="w3-bar-item w3-button nav-link" onclick="openTab('Clipboard', this.id)" href="#">Clipboard</a>   
+          </li>            
+        </ul>          
+  </header>
+
+            <div>
+              <div class="alert alert-success toast" id="success-alert">    
+              <strong>Success! </strong>
+              Summary has been successfully retreived
+            </div>
+            <div class="alert alert-danger toast" id="failure-alert">      
+                <strong>Failed! </strong>
+                Could not retreive summary from server            
+            </div>
+  <div id='mask' class='invisible-mask d-none'>    
+    <div class="loader">
+      
+    </div>     
+  </div>  
+
+  <section id="main">    
+    <div class="container">      
+      <div class="row">
+        <div class="col-lg-8 mx-auto">         
+            <div id="Search" class="tab">             
+              <!--Search bar form-->
+              <form id="search-form">
+                <div class="form-group">                  
+                    <label for="search-query" style="color: black; font-weight: bold;">Search Query</label>
+                    <span><input id='search-text' name='search-query' style="display: inline; margin-top: 10px" type="text" class="form-control" placeholder="Search for query here..."/></span>
+                    <br><br>
+                    <div class="row">
+                      <div class='col-4'>
+                      <span>
+                      <label for="search-time" style="color: black; font-weight: bold;">Timeline</label>
+                      <select class='form-control form-control-sm' name='search-time'>
+                        <option value='d'>Past 24 Hours</option>
+                        <option value='wk' selected="selected">Past Week</option>
+                        <option value='m'>Past Month</option>
+                      </select>
+                    </span>
+                    </div>
+                    <div class='col-4'>
+                    <span>
+                      <label for="search-category" style="color: black; font-weight: bold">Category</label>
+                    <select class='form-control form-control-sm' name='search-category'>                                              
+                        <option value='' selected='selected'>Any</option>
+                        <option value='general'>General</option>
+                        <option value='sports'>Sports</option>
+                        <option value='entertainment'>Entertainment</option>
+                        <option value='science'>Science</option>
+                        <option value='business'>Business</option>
+                        <option value='health'>Health</option>
+                        <option value='technology'>Technology</option>
+                      </select>
+                    </span>    
+                    </div>
+                    <div class='col-4'>
+                    <span>
+                      <label for="search-sort" style="color: black; font-weight: bold">Sort By</label>
+                    <select class='form-control form-control-sm' name='search-sort'>                                              
+                        <option value='relevancy' selected='selected'>Relevancy</option>
+                        <option value='publishedAt'>Published At</option>
+                        <option value='popularity'>Popularity</option>
+                      </select>
+                    </span>               
+                    </div>        
+                    </div>
+                     <br>                 
+                    <div class="text-center">
+                      <input id='search_btn' type='submit' value='Search' class="btn btn-primary"/>
+                    </div>
+                </div>
+              </form>          
+            </div>
+            <div id="Links" class="tab" style="display: none;">              
+              <!--text fields form for links-->
+              <form id="link-form">
+                <div class="form-group">
+                  <span id='link-text-0'><input name='link-text-0' style="display: inline; margin-top: 10px" type="text" class="form-control" name="query" placeholder="Enter link here..."></span><br>
+
+                  <span accesskey='' id="link-minus" onclick = "decreaseFields('link-text')">
+                      <img src="{{ url_for('static', filename='images/minus.png')}}" align="right">
+                  </span>
+                  <span accesskey='' id="link-add" onclick = "increaseFields('link-text')">
+                    <img src="{{ url_for('static', filename='images/plus.png')}}" align="right">
+                  </span><br>                  
+                  <input id='link_btn' type='submit' value='Search' class="btn btn-primary"/>
+                </div>                
+              </form>
+            </div>
+            <div id="Clipboard" class="tab" style="display: none;">              
+              <!--text area form for text-->
+              <form id="clipboard-form">
+                <div class="form-group">
+                  <span id='clipboard-text-0'><input name='clipboard-text-0' style="display: inline; margin-top: 10px" type="text-area" class="form-control" placeholder="Paste text here..."></span><br>
+                  <span accesskey='' id="clipboard-minus" onclick = "decreaseFields('clipboard-text')">
+                    <img src="{{ url_for('static', filename='images/minus.png')}}" align="right">
+                  </span>
+                  <span accesskey='' id="clipboard-add" onclick = "increaseFields('clipboard-text')">
+                    <img src="{{ url_for('static', filename='images/plus.png')}}" align="right">
+                  </span><br>
+                  <button id='clipboard_btn' class="btn btn-primary">Search</button>                  
+                </div>                                
+              </form>              
+            </div>            
+        </div><
+      </div>                          
+    </div>        
+
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 mx-auto">          
+            <div id="summary">             
+              <label for="summary-area"  style="color: black; font-weight: bold;">Summary</label>
+              <span><textarea id="summary-area" readonly="true" class="form-control input-lg" name="query" placeholder="Summary goes here..."></textarea></span>              
+              <div class='text-right'>
+                <span id="summary-copy" class="fa fa-copy fa-2x" onclick = "copy_summary()" data-toggle="tooltip" data-placement="top" title="Copy to clipboard"></span>
+              </div>                
+            </div>
+        </div>
+         <div class="text-center">
+          <div class="alert alert-info clipboard-toast " id="info-alert">   
+            Summary copied to clipboard!
+          </div>
+        </div>
+      </div>       
+    </div>    
+  </div>
+  </section>  
+
+   <section id="results">     
+    <div class="container">
+      <div class="text-center">
+        <p>
+        <button id="sources-button" class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseSources" aria-expanded="false" aria-controls="collapseSources">
+        View Sources
+        <span id='sources-badge' class="badge badge-light"></span>
+      </button>
+        </p>
+        <div class="collapse" id="collapseSources">
+          <div id='sources' class="list-group">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>               
+
+  <!-- Footer -->
+  <footer class="py-5 active-shade">
+    <div class="container">
+      <!-- <p class="m-0 text-center">Copyright &copy; Sumy 2019</p> -->
+      <p class="m-0 text-center">This website is powered by News-API</p>
+    </div>
+  </footer>
+
+</body>
+<script type="text/javascript"> 
+  $('textarea').autoResize();
+  
+  $('#search-form').ajaxForm({
+      url: '/search_form',      
+      type: 'post',
+      dataType: 'json',
+      success: function(response){
+        success_retrieve();
+        document.getElementById('summary-area').value = response[0];              
+        update_sources(response[1])        
+        $("#summary-area").trigger('change.dynSiz');
+      },
+      beforeSend: function(){        
+        show_mask(true);
+      },
+      complete: function(){        
+        show_mask(false);
+      },
+      error: function(XMLHttpRequest, textStatus, errorThrown) { 
+        failure_retrieve();
+        alert("Status: " + textStatus); alert("Error: " + errorThrown); 
+      }
+    });
+
+  $('#link-form').ajaxForm({
+      url: '/link_form',      
+      type: 'post',
+      dataType: 'json',
+      success: function(response){
+        success_retrieve();
+        document.getElementById('summary-area').value = response;        
+      },
+      beforeSend: function(){
+        show_mask(true);
+      },
+      complete: function(){
+        show_mask(false);
+      },
+      error: function(XMLHttpRequest, textStatus, errorThrown) { 
+        failure_retrieve();
+        alert("Status: " + textStatus); alert("Error: " + errorThrown); 
+      }
+    });
+
+  $('#clipboard-form').ajaxForm({
+      url: '/clipboard_form',      
+      type: 'post',
+      dataType: 'json',
+      success: function(response){
+        success_retrieve();
+        document.getElementById('summary-area').value = response;                
+      },
+      beforeSend: function(){
+        show_mask(true);
+      },
+      complete: function(){
+        show_mask(false);
+      },
+      error: function(XMLHttpRequest, textStatus, errorThrown) { 
+        failure_retrieve();
+        alert("Status: " + textStatus); alert("Error: " + errorThrown); 
+      }
+    });
+
+  window.onload = function() {  
+    document.getElementById("search-text").value='';
+    document.getElementById("link-text-0").firstChild.value='';   
+    document.getElementById("clipboard-text-0").firstChild.value='';   
+    document.getElementById("summary-area").value='';    
+  }
+
+  $(".list-group-item").hover(
+    function(){
+      $(this).toggleClass("active");
+      console.log('Hovered');
+    }, 
+    function(){
+      $(this).toggleClass("active");
+      console.log('Left');
+    }
+  );
+
+</script>    
+</html>
